@@ -141,3 +141,4 @@
 /Users/chloecloud/Desktop/IS455Project/backend/IS455Project.API/IS455Project.API/obj/Debug/net8.0/IS455Project.API.pdb
 /Users/chloecloud/Desktop/IS455Project/backend/IS455Project.API/IS455Project.API/obj/Debug/net8.0/IS455Project.API.genruntimeconfig.cache
 /Users/chloecloud/Desktop/IS455Project/backend/IS455Project.API/IS455Project.API/obj/Debug/net8.0/ref/IS455Project.API.dll
+/Users/chloecloud/Desktop/IS455Project/backend/IS455Project.API/IS455Project.API/bin/Debug/net8.0/CsvHelper.dll

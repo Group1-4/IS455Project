@@ -1,51 +1,54 @@
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using System.Net.Http;
-using System.Threading.Tasks;
+using CsvHelper;
+using System.Globalization;
+using System.IO;
 
-namespace RecommendationApi.Controllers
+namespace RecommendationAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class RecommendationController : ControllerBase
     {
-        private readonly HttpClient _httpClient;
+        private const string contentFilteringCsv = "/path/to/content_filtering_results.csv";
+        private const string collaborativeFilteringCsv = "/path/to/collaborative_filtering_results.csv";
 
-        public RecommendationController(HttpClient httpClient)
+        // Get content recommendations from the CSV
+        [HttpGet("getContentRecommendations/{contentId}")]
+        public IActionResult GetContentRecommendations(string contentId)
         {
-            _httpClient = httpClient;
+            var recommendations = GetRecommendationsFromCsv(contentFilteringCsv, contentId);
+            return Ok(recommendations);
         }
 
-        // GET api/recommendation/{id}
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetRecommendations(string id)
+        // Get collaborative recommendations from the CSV
+        [HttpGet("getCollaborativeRecommendations/{contentId}")]
+        public IActionResult GetCollaborativeRecommendations(string contentId)
         {
-            try
+            var recommendations = GetRecommendationsFromCsv(collaborativeFilteringCsv, contentId);
+            return Ok(recommendations);
+        }
+
+        // Helper method to get recommendations from a CSV file
+        private List<string> GetRecommendationsFromCsv(string filePath, string contentId)
+        {
+            var recommendations = new List<string>();
+
+            using (var reader = new StreamReader(filePath))
+            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
             {
-                // Step 1: Call Python Collaborative Filtering model
-                var collaborativeResponse = await _httpClient.GetStringAsync($"http://localhost:5000/collaborative/{id}");
-                var collaborativeRecommendations = JsonConvert.DeserializeObject<int[]>(collaborativeResponse);
+                var records = csv.GetRecords<dynamic>().ToList();
 
-                // Step 2: Call Python Content Filtering model
-                var contentResponse = await _httpClient.GetStringAsync($"http://localhost:5000/content/{id}");
-                var contentRecommendations = JsonConvert.DeserializeObject<int[]>(contentResponse);
-
-                // Step 3: Call Azure ML endpoint (replace URL with your Azure ML endpoint)
-                var azureResponse = await _httpClient.GetStringAsync($"https://<azure-endpoint>/predict/{id}");
-                var azureRecommendations = JsonConvert.DeserializeObject<int[]>(azureResponse);
-
-                // Return recommendations in a structured JSON format
-                return Ok(new
+                foreach (var record in records)
                 {
-                    collaborative = collaborativeRecommendations,
-                    contentBased = contentRecommendations,
-                    azure = azureRecommendations
-                });
+                    if (record.ContentId == contentId)
+                    {
+                        recommendations.Add(record.RecommendedItem.ToString());
+                    }
+                }
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+
+            return recommendations;
         }
     }
 }
+        
