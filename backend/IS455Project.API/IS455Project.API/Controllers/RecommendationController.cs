@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using CsvHelper;
 using System.Globalization;
-using System.IO;
+
+using IS455Project.API.Services;
+
 
 namespace RecommendationAPI.Controllers
 {
@@ -13,12 +15,12 @@ namespace RecommendationAPI.Controllers
         private const string collaborativeFilteringCsv = "/path/to/collaborative_filtering_results.csv";
 
         // Get content recommendations from the CSV
-        [HttpGet("getContentRecommendations/{contentId}")]
-        public IActionResult GetContentRecommendations(string contentId)
-        {
-            var recommendations = GetRecommendationsFromCsv(contentFilteringCsv, contentId);
-            return Ok(recommendations);
-        }
+        // [HttpGet("getContentRecommendations/{contentId}")]
+        // public IActionResult GetContentRecommendations(string contentId)
+        // {
+        //     var recommendations = GetRecommendationsFromCsv(contentFilteringCsv, contentId);
+        //     return Ok(recommendations);
+        // }
 
         // Get collaborative recommendations from the CSV
         [HttpGet("getCollaborativeRecommendations/{contentId}")]
@@ -48,6 +50,31 @@ namespace RecommendationAPI.Controllers
             }
 
             return recommendations;
+        }
+        [HttpGet("getContentRecommendations/{contentId}")]
+        public IActionResult GetRecommendations(string contentId, int topN = 5)
+        {
+            try
+            {
+                string csvPath = Path.Combine("content_filtering_results.csv");
+
+
+                var recommendations = TFIDFRecommender.GetTopSimilarContent(csvPath, contentId, topN);
+
+                return Ok(recommendations.Select(r => new
+                {
+                    contentId = r.ContentId,
+                    score = r.Score
+                }));
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred.", detail = ex.Message });
+            }
         }
     }
 }
