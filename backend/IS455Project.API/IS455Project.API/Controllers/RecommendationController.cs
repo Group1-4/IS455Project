@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using CsvHelper;
 using System.Globalization;
-
+using IS455Project.API;
 using IS455Project.API.Services;
 
 
@@ -12,7 +12,7 @@ namespace RecommendationAPI.Controllers
     public class RecommendationController : ControllerBase
     {
         private const string contentFilteringCsv = "/path/to/content_filtering_results.csv";
-        private const string collaborativeFilteringCsv = "/path/to/collaborative_filtering_results.csv";
+        private string collaborativeFilteringCsv = Path.Combine("collab_contentId.csv");
 
         // Get content recommendations from the CSV
         // [HttpGet("getContentRecommendations/{contentId}")]
@@ -38,13 +38,19 @@ namespace RecommendationAPI.Controllers
             using (var reader = new StreamReader(filePath))
             using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
             {
-                var records = csv.GetRecords<dynamic>().ToList();
+                // Read records using the CsvRecord class
+                var records = csv.GetRecords<CsvRecord>().ToList();
 
+                // Loop through the records to find the ones with the matching contentId
                 foreach (var record in records)
                 {
                     if (record.ContentId == contentId)
                     {
-                        recommendations.Add(record.RecommendedItem.ToString());
+                        recommendations.Add(record.Recommendation1); // Add the appropriate recommendation
+                        recommendations.Add(record.Recommendation2); // Repeat for other recommendations if needed
+                        recommendations.Add(record.Recommendation3);
+                        recommendations.Add(record.Recommendation4);
+                        recommendations.Add(record.Recommendation5);
                     }
                 }
             }
