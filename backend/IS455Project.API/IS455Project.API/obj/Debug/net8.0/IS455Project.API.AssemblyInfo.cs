@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("IS455Project.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8ee3518f228c7357bb1b261d908d91f6311621c3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bacaf6e166ec405c1ec633ca27f2d5f26ed58555")]
 [assembly: System.Reflection.AssemblyProductAttribute("IS455Project.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("IS455Project.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -82,6 +82,24 @@ namespace RecommendationAPI.Controllers
                 return StatusCode(500, new { message = "An error occurred.", detail = ex.Message });
             }
         }
+        [HttpGet("all-content-ids")]
+        public IActionResult GetAllContentIds()
+        {
+            try
+            {
+                var contentIds = System.IO.File.ReadAllLines(collaborativeFilteringCsv)
+                    .Skip(1) // Skip header
+                    .Select(line => line.Split(',')[0]) // Assuming 'contentId' is in the first column
+                    .Distinct()
+                    .ToList();
+
+                return Ok(contentIds);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Failed to read content IDs", detail = ex.Message });
+            }
+        }
     }
 }
         
