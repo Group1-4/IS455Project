@@ -11,7 +11,7 @@ namespace RecommendationAPI.Controllers
     [ApiController]
     public class RecommendationController : ControllerBase
     {
-        private const string contentFilteringCsv = "/path/to/content_filtering_results.csv";
+        private string contentFilteringCsv = Path.Combine("content_filtering_results.csv");
         private string collaborativeFilteringCsv = Path.Combine("collab_contentId.csv");
 
         // Get content recommendations from the CSV
@@ -87,10 +87,10 @@ namespace RecommendationAPI.Controllers
         {
             try
             {
-                var contentIds = System.IO.File.ReadAllLines(collaborativeFilteringCsv)
-                    .Skip(1) // Skip header
+                var contentIds = System.IO.File.ReadAllLines(contentFilteringCsv)
+                    .Skip(1) // Skip header if there is one
                     .Select(line => line.Split(',')[0]) // Assuming 'contentId' is in the first column
-                    .Distinct()
+                    .Distinct() // Ensure no duplicates
                     .ToList();
 
                 return Ok(contentIds);
@@ -100,6 +100,7 @@ namespace RecommendationAPI.Controllers
                 return StatusCode(500, new { message = "Failed to read content IDs", detail = ex.Message });
             }
         }
+
     }
 }
         
