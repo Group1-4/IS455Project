@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using CsvHelper;
 using System.Globalization;
 using System.IO;
+using IS455Project.API.Services;
 
 namespace RecommendationAPI.Controllers
 {
@@ -49,6 +50,31 @@ namespace RecommendationAPI.Controllers
 
             return recommendations;
         }
+        [HttpGet("{contentId}")]
+        public IActionResult GetRecommendations(string contentId, int topN = 5)
+        {
+            try
+            {
+                string csvPath = Path.Combine("backend", "IS455Project.API", "IS455Project.API", "content_filtering_results.csv");
+
+                var recommendations = TFIDFRecommender.GetTopSimilarContent(csvPath, contentId, topN);
+
+                return Ok(recommendations.Select(r => new
+                {
+                    contentId = r.ContentId,
+                    score = r.Score
+                }));
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred.", detail = ex.Message });
+            }
+        }
     }
+}
 }
         
