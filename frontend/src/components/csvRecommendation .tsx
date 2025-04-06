@@ -1,65 +1,47 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 
-const RecommendationPage: React.FC = () => {
-  const [contentId, setContentId] = useState<string>('');
-  const [contentRecommendations, setContentRecommendations] = useState<string[]>([]);
-  const [collaborativeRecommendations, setCollaborativeRecommendations] = useState<string[]>([]);
-  const [contentIds, setContentIds] = useState<string[]>([]);
+const ContentIdSelector = () => {
+  const [contentIds, setContentIds] = useState([]);
+  const [selected, setSelected] = useState([]);
 
   useEffect(() => {
-    // Fetch contentIds (you might want to change this based on your data source)
-    axios.get('/api/availableContentIds')
-      .then(response => {
-        setContentIds(response.data);
+    fetch('http://localhost:5226/api/recommendation/all-content-ids')
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('Failed to fetch content IDs');
+        }
+        return res.json();
       })
-      .catch(error => console.error(error));
+      .then((data) => setContentIds(data))
+      .catch((err) => console.error(err));
   }, []);
 
-  const handleContentIdChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedContentId = event.target.value;
-    setContentId(selectedContentId);
-
-    try {
-      // Fetch recommendations from the backend for both content filtering and collaborative filtering
-      const contentResponse = await axios.get(`/api/getContentRecommendations/${selectedContentId}`);
-      setContentRecommendations(contentResponse.data);
-
-      const collaborativeResponse = await axios.get(`/api/getCollaborativeRecommendations/${selectedContentId}`);
-      setCollaborativeRecommendations(collaborativeResponse.data);
-    } catch (error) {
-      console.error(error);
-    }
+  const handleCheckboxChange = (id) => {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
   };
 
   return (
-    <div>
-      <h1>Get Recommendations</h1>
-      <label htmlFor="contentId">Select Content:</label>
-      <select id="contentId" value={contentId} onChange={handleContentIdChange}>
-        <option value="">--Select--</option>
-        {contentIds.map(id => (
-          <option key={id} value={id}>
-            {id}
-          </option>
-        ))}
-      </select>
-
-      <h2>Content-Based Recommendations</h2>
-      <ul>
-        {contentRecommendations.map((rec, index) => (
-          <li key={index}>{rec}</li>
+    <div className="p-4">
+      <h2 className="text-xl font-bold mb-4">Select Content IDs</h2>
+      <ul className="space-y-2">
+        {contentIds.map((id) => (
+          <li key={id} className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={selected.includes(id)}
+              onChange={() => handleCheckboxChange(id)}
+            />
+            <label>{id}</label>
+          </li>
         ))}
       </ul>
-
-      <h2>Collaborative Filtering Recommendations</h2>
-      <ul>
-        {collaborativeRecommendations.map((rec, index) => (
-          <li key={index}>{rec}</li>
-        ))}
-      </ul>
+      <div className="mt-4">
+        <strong>Selected IDs:</strong> {selected.join(', ')}
+      </div>
     </div>
   );
 };
 
-export default RecommendationPage;
+export default ContentIdSelector;

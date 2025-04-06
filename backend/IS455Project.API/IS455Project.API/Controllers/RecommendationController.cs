@@ -82,6 +82,7 @@ namespace RecommendationAPI.Controllers
                 return StatusCode(500, new { message = "An error occurred.", detail = ex.Message });
             }
         }
+
         [HttpGet("all-content-ids")]
         public IActionResult GetAllContentIds()
         {
@@ -102,5 +103,6 @@ namespace RecommendationAPI.Controllers
         }
 
     }
+}
 }
         
