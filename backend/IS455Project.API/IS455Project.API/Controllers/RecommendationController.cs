@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using CsvHelper;
 using System.Globalization;
-using System.IO;
+using IS455Project.API;
 using IS455Project.API.Services;
+
 
 namespace RecommendationAPI.Controllers
 {
@@ -10,16 +11,16 @@ namespace RecommendationAPI.Controllers
     [ApiController]
     public class RecommendationController : ControllerBase
     {
-        private const string contentFilteringCsv = "/path/to/content_filtering_results.csv";
-        private const string collaborativeFilteringCsv = "/path/to/collaborative_filtering_results.csv";
+        private string contentFilteringCsv = Path.Combine("content_filtering_results.csv");
+        private string collaborativeFilteringCsv = Path.Combine("collab_contentId.csv");
 
         // Get content recommendations from the CSV
-        [HttpGet("getContentRecommendations/{contentId}")]
-        public IActionResult GetContentRecommendations(string contentId)
-        {
-            var recommendations = GetRecommendationsFromCsv(contentFilteringCsv, contentId);
-            return Ok(recommendations);
-        }
+        // [HttpGet("getContentRecommendations/{contentId}")]
+        // public IActionResult GetContentRecommendations(string contentId)
+        // {
+        //     var recommendations = GetRecommendationsFromCsv(contentFilteringCsv, contentId);
+        //     return Ok(recommendations);
+        // }
 
         // Get collaborative recommendations from the CSV
         [HttpGet("getCollaborativeRecommendations/{contentId}")]
@@ -37,25 +38,32 @@ namespace RecommendationAPI.Controllers
             using (var reader = new StreamReader(filePath))
             using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
             {
-                var records = csv.GetRecords<dynamic>().ToList();
+                // Read records using the CsvRecord class
+                var records = csv.GetRecords<CsvRecord>().ToList();
 
+                // Loop through the records to find the ones with the matching contentId
                 foreach (var record in records)
                 {
                     if (record.ContentId == contentId)
                     {
-                        recommendations.Add(record.RecommendedItem.ToString());
+                        recommendations.Add(record.Recommendation1); // Add the appropriate recommendation
+                        recommendations.Add(record.Recommendation2); // Repeat for other recommendations if needed
+                        recommendations.Add(record.Recommendation3);
+                        recommendations.Add(record.Recommendation4);
+                        recommendations.Add(record.Recommendation5);
                     }
                 }
             }
 
             return recommendations;
         }
-        [HttpGet("{contentId}")]
+        [HttpGet("getContentRecommendations/{contentId}")]
         public IActionResult GetRecommendations(string contentId, int topN = 5)
         {
             try
             {
-                string csvPath = Path.Combine("backend", "IS455Project.API", "IS455Project.API", "content_filtering_results.csv");
+                string csvPath = Path.Combine("content_filtering_results.csv");
+
 
                 var recommendations = TFIDFRecommender.GetTopSimilarContent(csvPath, contentId, topN);
 
@@ -74,6 +82,26 @@ namespace RecommendationAPI.Controllers
                 return StatusCode(500, new { message = "An error occurred.", detail = ex.Message });
             }
         }
+
+        [HttpGet("all-content-ids")]
+        public IActionResult GetAllContentIds()
+        {
+            try
+            {
+                var contentIds = System.IO.File.ReadAllLines(contentFilteringCsv)
+                    .Skip(1) // Skip header if there is one
+                    .Select(line => line.Split(',')[0]) // Assuming 'contentId' is in the first column
+                    .Distinct() // Ensure no duplicates
+                    .ToList();
+
+                return Ok(contentIds);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Failed to read content IDs", detail = ex.Message });
+            }
+        }
+
     }
 }
 }
